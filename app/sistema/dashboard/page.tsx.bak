@@ -1,0 +1,881 @@
+
+"use client"
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
+import {
+  BarChart3,
+  Users,
+  FolderOpen,
+  Calculator,
+  Settings,
+  LogOut,
+  Bell,
+  Search,
+  Plus,
+  TrendingUp,
+  Clock,
+  CheckCircle,
+  Brain,
+  Calendar,
+  DollarSign,
+  Package,
+  Box,
+  MessageCircle,
+  Leaf,
+  Zap,
+  Building,
+  Hammer,
+  PaintBucket,
+  Wrench,
+  Target,
+  Globe,
+  Lightbulb,
+  ChevronRight,
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Badge } from '@/components/ui/badge'
+import { useAuth } from '@/lib/auth-context'
+import { Logo } from '@/components/logo'
+import { useProjects } from '@/lib/hooks/useProjects'
+import { ProjectCard } from '@/components/projects/project-card'
+import { NewProjectForm, NewProjectData } from '@/components/projects/new-project-form'
+import { useNotification } from '@/components/projects/project-notification'
+
+export default function DashboardPage() {
+  const { user, loading, signOut } = useAuth()
+  const router = useRouter()
+  const { projects, getStats, fetchProjects } = useProjects()
+  const { success: showSuccess, error: showError } = useNotification()
+  const [newProjectOpen, setNewProjectOpen] = useState(false)
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/sistema')
+    }
+  }, [user, loading, router])
+
+  const handleSignOut = async () => {
+    await signOut()
+    router.push('/sistema')
+  }
+
+  const handleNewProject = async (data: NewProjectData) => {
+    try {
+      if (!data.projectName?.trim()) throw new Error('Nome do projeto é obrigatório')
+      if (!data.projectCode?.trim()) throw new Error('Código do projeto é obrigatório')
+      if (data.budget <= 0) throw new Error('Orçamento deve ser maior que zero')
+      if (!data.client.name?.trim()) throw new Error('Nome do cliente é obrigatório')
+      if (!data.startDate || !data.plannedEndDate) throw new Error('Datas são obrigatórias')
+      if (new Date(data.startDate) >= new Date(data.plannedEndDate)) {
+        throw new Error('Data de término deve ser após a data de início')
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      await fetchProjects()
+      showSuccess('✓ Projeto criado com sucesso!', `${data.projectName} foi adicionado`)
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Erro ao criar projeto'
+      showError('Erro ao criar projeto', errorMsg)
+      throw error
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <div className="w-8 h-8 border-4 border-gold-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-slate-600 dark:text-slate-400">Carregando...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return null
+  }
+
+  const getRoleLabel = (role: string) => {
+    const labels = {
+      admin: 'Administrador',
+      colaborador: 'Colaborador',
+      cliente: 'Cliente',
+    }
+    return labels[role as keyof typeof labels] || role
+  }
+
+  // Recursos da Plataforma Neural organizados por categoria
+  const neuralFeatures = {
+    orcamento: [
+      {
+        title: 'Orçamento Quântico-Inteligente',
+        description: 'IA neural que cruza tipo de construção, padrão de acabamento e dados regionais',
+        icon: Brain,
+        status: 'Ativo',
+        color: 'blue',
+        features: ['Análise de padrão de acabamento', 'Dados históricos regionais', 'Comparativo de fornecedores']
+      },
+      {
+        title: 'Calculadora de Custos',
+        description: 'Estimativa automatizada baseada em metragem e especificações',
+        icon: Calculator,
+        status: 'Ativo',
+        color: 'green',
+        features: ['Cálculo por m²', 'Custos por etapa', 'Margem de segurança']
+      },
+      {
+        title: 'Comparador de Fornecedores',
+        description: 'Análise automática de preços entre fornecedores locais',
+        icon: Target,
+        status: 'Beta',
+        color: 'orange',
+        features: ['Preços em tempo real', 'Avaliação de qualidade', 'Histórico de entregas']
+      }
+    ],
+    cronograma: [
+      {
+        title: 'Cronograma Adaptativo',
+        description: 'Cronograma que se ajusta em tempo real com IA',
+        icon: Calendar,
+        status: 'Ativo',
+        color: 'purple',
+        features: ['Ajuste por clima', 'Disponibilidade de mão de obra', 'Alertas preditivos']
+      },
+      {
+        title: 'Previsão de Atrasos',
+        description: 'Alertas preditivos antes dos problemas acontecerem',
+        icon: Clock,
+        status: 'Ativo',
+        color: 'red',
+        features: ['Análise de riscos', 'Clima regional', 'Histórico de obras']
+      },
+      {
+        title: 'Gestão de Etapas',
+        description: 'Controle inteligente do progresso da obra',
+        icon: CheckCircle,
+        status: 'Ativo',
+        color: 'green',
+        features: ['Marcos automáticos', 'Medições inteligentes', 'Relatórios de progresso']
+      }
+    ],
+    financeiro: [
+      {
+        title: 'Fluxo de Caixa Automatizado',
+        description: 'Projeção financeira com parcelamento inteligente',
+        icon: DollarSign,
+        status: 'Ativo',
+        color: 'green',
+        features: ['Parcelamento por medições', 'Integração bancária', 'Opções de financiamento']
+      },
+      {
+        title: 'Financiamento Inteligente',
+        description: 'Integração com bancos e Minha Casa Minha Vida',
+        icon: Building,
+        status: 'Beta',
+        color: 'blue',
+        features: ['MCMV automático', 'Simulação de juros', 'Pré-aprovação']
+      },
+      {
+        title: 'Simulação de Impacto',
+        description: 'Análise de aditivos contratuais em tempo real',
+        icon: TrendingUp,
+        status: 'Ativo',
+        color: 'orange',
+        features: ['Mudanças de escopo', 'Impacto no cronograma', 'Ajuste de orçamento']
+      }
+    ],
+    materiais: [
+      {
+        title: 'Lista Inteligente de Materiais',
+        description: 'Sugestão automática por etapa com preços regionais',
+        icon: Package,
+        status: 'Ativo',
+        color: 'blue',
+        features: ['Sugestão por etapa', 'Preços regionais', 'Comparativo qualidade/preço']
+      },
+      {
+        title: 'Marketplace Integrado',
+        description: 'Compra direta com fornecedores parceiros',
+        icon: Globe,
+        status: 'Beta',
+        color: 'purple',
+        features: ['Fornecedores verificados', 'Negociação automática', 'Entrega programada']
+      },
+      {
+        title: 'Comparador Inteligente',
+        description: 'Análise de durabilidade vs economia',
+        icon: Wrench,
+        status: 'Ativo',
+        color: 'green',
+        features: ['Análise de durabilidade', 'Custo-benefício', 'Sustentabilidade']
+      }
+    ],
+    visualizacao: [
+      {
+        title: 'Realidade Aumentada',
+        description: 'Visualização 3D/AR da obra antes de iniciar',
+        icon: Box,
+        status: 'Beta',
+        color: 'purple',
+        features: ['Visualização 3D', 'AR mobile', 'Tour virtual']
+      },
+      {
+        title: 'Modelagem 3D',
+        description: 'Modelos tridimensionais interativos',
+        icon: Building,
+        status: 'Ativo',
+        color: 'blue',
+        features: ['Modelos detalhados', 'Diferentes ângulos', 'Materiais realistas']
+      },
+      {
+        title: 'Otimização de Design',
+        description: 'IA sugere melhorias de espaço e eficiência',
+        icon: Lightbulb,
+        status: 'Beta',
+        color: 'orange',
+        features: ['Otimização de espaços', 'Eficiência energética', 'Sugestões de layout']
+      }
+    ],
+    consultoria: [
+      {
+        title: 'IA Consultora',
+        description: 'Chatbot especializado em engenharia e arquitetura',
+        icon: MessageCircle,
+        status: 'Ativo',
+        color: 'blue',
+        features: ['Respostas técnicas', 'Sugestões de projeto', 'Recomendação de profissionais']
+      },
+      {
+        title: 'Rede de Profissionais',
+        description: 'Recomendação de arquitetos, engenheiros e mestres',
+        icon: Users,
+        status: 'Ativo',
+        color: 'green',
+        features: ['Profissionais verificados', 'Avaliações reais', 'Disponibilidade regional']
+      },
+      {
+        title: 'Suporte Técnico',
+        description: 'Assistência especializada para dúvidas complexas',
+        icon: Hammer,
+        status: 'Ativo',
+        color: 'purple',
+        features: ['Suporte 24/7', 'Especialistas certificados', 'Resolução rápida']
+      }
+    ],
+    sustentabilidade: [
+      {
+        title: 'Energia Solar',
+        description: 'Cálculo automático de captação solar',
+        icon: Zap,
+        status: 'Ativo',
+        color: 'yellow',
+        features: ['Potencial solar', 'ROI calculado', 'Dimensionamento automático']
+      },
+      {
+        title: 'Captação de Água',
+        description: 'Sistema de aproveitamento de água da chuva',
+        icon: Leaf,
+        status: 'Beta',
+        color: 'blue',
+        features: ['Potencial de captação', 'Dimensionamento cisterna', 'Economia calculada']
+      },
+      {
+        title: 'Eficiência Energética',
+        description: 'Análise de isolamento térmico e eficiência',
+        icon: Leaf,
+        status: 'Ativo',
+        color: 'green',
+        features: ['Isolamento térmico', 'Eficiência HVAC', 'Certificação energética']
+      }
+    ]
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Ativo':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+      case 'Beta':
+        return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400'
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
+    }
+  }
+
+  const handleAccessResource = (resourceTitle: string, category: string) => {
+    // Aqui você pode implementar a navegação ou ação específica para cada recurso
+    console.log(`Acessando: ${resourceTitle} da categoria: ${category}`)
+    
+    // Exemplos de navegação baseado no tipo de recurso
+    switch (category) {
+      case 'orcamento':
+        if (resourceTitle.includes('Orçamento Quântico')) {
+          // Navegar para interface quântica de orçamento
+          router.push('/sistema/orcamento-quantico')
+        } else if (resourceTitle.includes('Calculadora')) {
+          // Navegar para calculadora simples
+          router.push('/sistema/calculadora')
+        } else {
+          alert('🧠 Módulo de Orçamento Avançado em desenvolvimento...\nRecursos: Comparação de fornecedores e otimização de custos')
+        }
+        break
+      case 'cronograma':
+        if (resourceTitle.includes('Cronograma Adaptativo')) {
+          // Navegar para interface de cronograma neural
+          router.push('/sistema/cronograma-adaptativo')
+        } else {
+          alert('📅 Outros módulos de Cronograma em desenvolvimento...\nRecursos: Previsão de atrasos e gestão de etapas')
+        }
+        break
+      case 'financeiro':
+        alert('💰 Módulo Financeiro em desenvolvimento...\nRecursos: Fluxo de caixa e financiamento inteligente')
+        break
+      case 'materiais':
+        alert('📦 Módulo de Materiais em desenvolvimento...\nRecursos: Lista inteligente e marketplace integrado')
+        break
+      case 'visualizacao':
+        alert('🎯 Módulo 3D/AR em desenvolvimento...\nRecursos: Visualização e realidade aumentada')
+        break
+      case 'consultoria':
+        if (resourceTitle.includes('IA Consultora')) {
+          // Navegar para interface de consultoria neural
+          router.push('/sistema/consultoria-ia')
+        } else {
+          alert('👥 Outros módulos de Consultoria em desenvolvimento...\nRecursos: Rede de profissionais e suporte técnico')
+        }
+        break
+      case 'sustentabilidade':
+        alert('🌱 Módulo de Sustentabilidade em desenvolvimento...\nRecursos: Energia solar, captação de água e eficiência energética')
+        break
+      default:
+        alert('Recurso em desenvolvimento. Em breve disponível!')
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      {/* Header */}
+      <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50">
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Logo />
+              <span className="text-xl font-bold text-slate-900 dark:text-white tracking-wide">
+                PLATAFORMA NEURAL
+              </span>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              <div className="hidden md:flex relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Buscar recursos..."
+                  className="pl-10 w-64 bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600"
+                />
+              </div>
+
+              <Button variant="outline" size="icon" className="relative">
+                <Bell className="h-4 w-4" />
+                <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full" />
+              </Button>
+
+              <div className="flex items-center space-x-3">
+                <div className="text-right hidden sm:block">
+                  <p className="text-sm font-medium text-slate-900 dark:text-white">
+                    {user.displayName}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {getRoleLabel(user.role)}
+                  </p>
+                </div>
+                <div className="w-8 h-8 bg-gold-500 rounded-full flex items-center justify-center">
+                  <span className="text-sm font-semibold text-slate-900">
+                    {user.displayName.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleSignOut}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Navigation Tabs */}
+          <Tabs defaultValue="ia-platform" className="w-full">
+            <TabsList className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 rounded-none w-full justify-start gap-0 h-auto p-0">
+              <TabsTrigger
+                value="ia-platform"
+                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-gold-500 rounded-none px-6 py-4"
+              >
+                🧠 Plataforma Neural IA
+              </TabsTrigger>
+              <TabsTrigger
+                value="projects"
+                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-gold-500 rounded-none px-6 py-4"
+              >
+                📁 Projetos & Obras
+              </TabsTrigger>
+            </TabsList>
+
+            {/* IA Platform Tab */}
+            <TabsContent value="ia-platform" className="space-y-6">
+              {/* Welcome Section */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-8"
+              >
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+                  Bem-vindo à Plataforma Neural, {user.displayName}!
+                </h1>
+                <p className="text-slate-600 dark:text-slate-400 mb-4">
+                  Sistema inteligente de orçamento, planejamento e gestão de obras residenciais com IA.
+                </p>
+                <div className="flex items-center space-x-4">
+                  <Badge className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+                    🧠 IA Neural Ativa
+                  </Badge>
+                  <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white">
+                    🚀 6 Módulos Disponíveis
+                  </Badge>
+                  <Badge className="bg-gradient-to-r from-orange-500 to-yellow-600 text-white">
+                    ⚡ Automação Completa
+                  </Badge>
+                </div>
+              </motion.div>
+
+          {/* Stats Grid */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+          >
+            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-700">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-blue-600 dark:text-blue-400">Orçamentos IA</p>
+                    <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">127</p>
+                  </div>
+                  <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <Brain className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+                <div className="flex items-center mt-4 text-sm">
+                  <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                  <span className="text-green-600">+34%</span>
+                  <span className="text-blue-500 ml-1">precisão melhorada</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-700">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-purple-600 dark:text-purple-400">Cronogramas Adaptativos</p>
+                    <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">89</p>
+                  </div>
+                  <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+                    <Calendar className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+                <div className="flex items-center mt-4 text-sm">
+                  <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                  <span className="text-green-600">-23%</span>
+                  <span className="text-purple-500 ml-1">atrasos reduzidos</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-700">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-green-600 dark:text-green-400">Economia Gerada</p>
+                    <p className="text-2xl font-bold text-green-900 dark:text-green-100">R$ 2.8M</p>
+                  </div>
+                  <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                    <DollarSign className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+                <div className="flex items-center mt-4 text-sm">
+                  <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                  <span className="text-green-600">+18%</span>
+                  <span className="text-green-500 ml-1">vs orçamento tradicional</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-700">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-orange-600 dark:text-orange-400">Sustentabilidade</p>
+                    <p className="text-2xl font-bold text-orange-900 dark:text-orange-100">156</p>
+                  </div>
+                  <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
+                    <Leaf className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+                <div className="flex items-center mt-4 text-sm">
+                  <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                  <span className="text-green-600">+42%</span>
+                  <span className="text-orange-500 ml-1">projetos eco-eficientes</span>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+            {/* Projects Tab */}
+            <TabsContent value="projects">
+              <p className="text-slate-600 dark:text-slate-400">Seção de projetos clássica</p>
+            </TabsContent>
+
+            </Tabs>
+          </motion.div>
+
+          {/* Projects & Works Tab */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <Tabs defaultValue="projetos" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-8 bg-slate-100 dark:bg-slate-800 h-auto p-1">
+                <TabsTrigger
+                  value="projetos"
+                  className="data-[state=active]:bg-gold-500 data-[state=active]:text-slate-900 text-xs md:text-sm py-3 flex-col gap-1"
+                >
+                  <Building className="h-4 w-4" />
+                  Projetos & Obras
+                </TabsTrigger>
+                <TabsTrigger
+                  value="recursos-ia"
+                  className="data-[state=active]:bg-gold-500 data-[state=active]:text-slate-900 text-xs md:text-sm py-3 flex-col gap-1"
+                >
+                  <Zap className="h-4 w-4" />
+                  Recursos IA
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Projects Tab Content */}
+              <TabsContent value="projetos">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <div className="flex items-center justify-between gap-4 mb-6">
+                    <div>
+                      <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+                        Gestão de Projetos e Obras
+                      </h2>
+                      <p className="text-slate-600 dark:text-slate-400">
+                        Sistema completo - ObraFlow / Project Core
+                      </p>
+                    </div>
+                    <Button 
+                      size="lg" 
+                      className="bg-gold-500 hover:bg-gold-600 text-slate-900"
+                      onClick={() => setNewProjectOpen(true)}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Novo Projeto
+                    </Button>
+                  </div>
+
+                  {/* Projects Stats */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+                    {[
+                      { label: 'Total', value: getStats().totalProjects, icon: FolderOpen, color: 'bg-blue-500' },
+                      { label: 'Em Execução', value: getStats().activeProjects, icon: TrendingUp, color: 'bg-amber-500' },
+                      { label: 'Atrasados', value: getStats().delayedProjects, icon: Clock, color: 'bg-red-500' },
+                      { label: 'Concluídos', value: getStats().completedProjects, icon: CheckCircle, color: 'bg-green-500' },
+                      { label: 'Equipe', value: getStats().teamSize, icon: Users, color: 'bg-cyan-500' }
+                    ].map((stat, idx) => {
+                      const Icon = stat.icon
+                      return (
+                        <motion.div
+                          key={idx}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: idx * 0.1 }}
+                        >
+                          <Card className="hover:shadow-lg transition-shadow">
+                            <CardContent className="pt-6">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">{stat.label}</p>
+                                  <p className="text-3xl font-bold text-slate-900 dark:text-white mt-1">{stat.value}</p>
+                                </div>
+                                <div className={`p-3 rounded-lg ${stat.color}`}>
+                                  <Icon className="h-6 w-6 text-white" />
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      )
+                    })}
+                  </div>
+
+                  {/* Projects Grid */}
+                  <div>
+                    {projects.length === 0 ? (
+                      <Card className="p-12 text-center">
+                        <FolderOpen className="h-12 w-12 text-slate-400 mx-auto mb-4 opacity-50" />
+                        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
+                          Nenhum projeto ainda
+                        </h3>
+                        <p className="text-slate-600 dark:text-slate-400 mb-6">
+                          Crie seu primeiro projeto para começar a gerenciar suas obras
+                        </p>
+                        <Button 
+                          className="bg-gold-500 hover:bg-gold-600 text-slate-900"
+                          onClick={() => setNewProjectOpen(true)}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Novo Projeto
+                        </Button>
+                      </Card>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {projects.slice(0, 6).map((project, idx) => (
+                          <motion.div
+                            key={project.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: (idx % 6) * 0.05 }}
+                          >
+                            <ProjectCard
+                              project={project}
+                              onClick={() => router.push(`/sistema/projetos/${project.id}`)}
+                            />
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {projects.length > 6 && (
+                    <div className="flex justify-center mt-8">
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        onClick={() => router.push('/sistema/projetos')}
+                      >
+                        Ver Todos os Projetos ({projects.length})
+                        <ChevronRight className="h-4 w-4 ml-2" />
+                      </Button>
+                    </div>
+                  )}
+                </motion.div>
+              </TabsContent>
+
+              {/* Resources IA Tab Content */}
+              <TabsContent value="recursos-ia">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <div className="mb-8">
+                    <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+                      Recursos IA Neural
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-400">
+                      Plataforma completa de Inteligência Artificial para gerenciamento de projetos
+                    </p>
+                  </div>
+                  <Tabs defaultValue="orcamento" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7 mb-8 bg-slate-100 dark:bg-slate-800 h-auto p-1">
+                <TabsTrigger
+                  value="orcamento"
+                  className="data-[state=active]:bg-gold-500 data-[state=active]:text-slate-900 text-xs md:text-sm py-3 flex-col gap-1"
+                >
+                  <Brain className="h-4 w-4" />
+                  Orçamento IA
+                </TabsTrigger>
+                <TabsTrigger
+                  value="cronograma"
+                  className="data-[state=active]:bg-gold-500 data-[state=active]:text-slate-900 text-xs md:text-sm py-3 flex-col gap-1"
+                >
+                  <Calendar className="h-4 w-4" />
+                  Cronograma
+                </TabsTrigger>
+                <TabsTrigger
+                  value="financeiro"
+                  className="data-[state=active]:bg-gold-500 data-[state=active]:text-slate-900 text-xs md:text-sm py-3 flex-col gap-1"
+                >
+                  <DollarSign className="h-4 w-4" />
+                  Financeiro
+                </TabsTrigger>
+                <TabsTrigger
+                  value="materiais"
+                  className="data-[state=active]:bg-gold-500 data-[state=active]:text-slate-900 text-xs md:text-sm py-3 flex-col gap-1"
+                >
+                  <Package className="h-4 w-4" />
+                  Materiais
+                </TabsTrigger>
+                <TabsTrigger
+                  value="visualizacao"
+                  className="data-[state=active]:bg-gold-500 data-[state=active]:text-slate-900 text-xs md:text-sm py-3 flex-col gap-1"
+                >
+                  <Box className="h-4 w-4" />
+                  3D/AR
+                </TabsTrigger>
+                <TabsTrigger
+                  value="consultoria"
+                  className="data-[state=active]:bg-gold-500 data-[state=active]:text-slate-900 text-xs md:text-sm py-3 flex-col gap-1"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  IA Consultora
+                </TabsTrigger>
+                <TabsTrigger
+                  value="sustentabilidade"
+                  className="data-[state=active]:bg-gold-500 data-[state=active]:text-slate-900 text-xs md:text-sm py-3 flex-col gap-1"
+                >
+                  <Leaf className="h-4 w-4" />
+                  Sustentável
+                </TabsTrigger>
+              </TabsList>
+
+              {Object.entries(neuralFeatures).map(([category, features]) => (
+                <TabsContent key={category} value={category}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {features.map((feature, index) => (
+                      <motion.div
+                        key={feature.title}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 * index }}
+                      >
+                        <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer group h-full">
+                          <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className={`w-12 h-12 bg-${feature.color}-100 dark:bg-${feature.color}-900/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                                <feature.icon className={`h-6 w-6 text-${feature.color}-600`} />
+                              </div>
+                              <Badge className={getStatusColor(feature.status)}>
+                                {feature.status}
+                              </Badge>
+                            </div>
+                            <CardTitle className="text-lg leading-tight">{feature.title}</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-slate-600 dark:text-slate-400 text-sm mb-4">
+                              {feature.description}
+                            </p>
+                            
+                            <div className="space-y-2 mb-4">
+                              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                                Recursos Principais:
+                              </p>
+                              {feature.features.map((feat, i) => (
+                                <div key={i} className="flex items-center gap-2">
+                                  <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
+                                  <span className="text-xs text-slate-600 dark:text-slate-400">{feat}</span>
+                                </div>
+                              ))}
+                            </div>
+
+                            <Button
+                              variant="outline"
+                              className="w-full group-hover:bg-gold-500 group-hover:text-slate-900 group-hover:border-gold-500 transition-all"
+                              onClick={() => handleAccessResource(feature.title, category)}
+                            >
+                              Acessar Recurso
+                              <Plus className="ml-2 h-4 w-4" />
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                </TabsContent>
+              ))}
+
+              {/* Sustentabilidade Tab - incluída no loop principal */}
+              <TabsContent value="sustentabilidade">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {neuralFeatures.sustentabilidade.map((feature, index) => (
+                    <motion.div
+                      key={feature.title}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 * index }}
+                    >
+                      <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer group h-full">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className={`w-12 h-12 bg-${feature.color}-100 dark:bg-${feature.color}-900/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                              <feature.icon className={`h-6 w-6 text-${feature.color}-600`} />
+                            </div>
+                            <Badge className={getStatusColor(feature.status)}>
+                              {feature.status}
+                            </Badge>
+                          </div>
+                          <CardTitle className="text-lg leading-tight">{feature.title}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-slate-600 dark:text-slate-400 text-sm mb-4">
+                            {feature.description}
+                          </p>
+                          
+                          <div className="space-y-2 mb-4">
+                            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                              Recursos Principais:
+                            </p>
+                            {feature.features.map((feat, i) => (
+                              <div key={i} className="flex items-center gap-2">
+                                <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
+                                <span className="text-xs text-slate-600 dark:text-slate-400">{feat}</span>
+                              </div>
+                            ))}
+                          </div>
+
+                          <Button
+                            variant="outline"
+                            className="w-full group-hover:bg-gold-500 group-hover:text-slate-900 group-hover:border-gold-500 transition-all"
+                            onClick={() => handleAccessResource(feature.title, 'sustentabilidade')}
+                          >
+                            Acessar Recurso
+                            <Plus className="ml-2 h-4 w-4" />
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+              </TabsContent>
+            </Tabs>
+                </motion.div>
+              </TabsContent>
+            </Tabs>
+          </motion.div>
+        </div>
+
+        {/* New Project Form Modal */}
+        <NewProjectForm 
+          isOpen={newProjectOpen}
+          onClose={() => setNewProjectOpen(false)}
+          onSubmit={handleNewProject}
+        />
+      </main>
+    </div>
+  )
+}

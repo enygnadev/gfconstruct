@@ -1,0 +1,133 @@
+
+[
+  {
+    "codigo": "CIM001",
+    "descricao": "Cimento Portland CP II-E-32",
+    "unidade": "kg",
+    "coeficiente": 350,
+    "categoria": "Cimento e Agregados",
+    "fatorPadrao": {
+      "popular": 0.8,
+      "medio": 1.0,
+      "alto": 1.2,
+      "luxo": 1.5
+    }
+  },
+  {
+    "codigo": "ARE001",
+    "descricao": "Areia média lavada",
+    "unidade": "m³",
+    "coeficiente": 0.65,
+    "categoria": "Cimento e Agregados",
+    "fatorPadrao": {
+      "popular": 0.9,
+      "medio": 1.0,
+      "alto": 1.1,
+      "luxo": 1.2
+    }
+  },
+  {
+    "codigo": "BRI001",
+    "descricao": "Brita 1",
+    "unidade": "m³",
+    "coeficiente": 0.45,
+    "categoria": "Cimento e Agregados",
+    "fatorPadrao": {
+      "popular": 0.9,
+      "medio": 1.0,
+      "alto": 1.1,
+      "luxo": 1.2
+    }
+  },
+  {
+    "codigo": "TIJ001",
+    "descricao": "Tijolo cerâmico 6 furos",
+    "unidade": "milheiro",
+    "coeficiente": 0.085,
+    "categoria": "Alvenaria",
+    "fatorPadrao": {
+      "popular": 0.8,
+      "medio": 1.0,
+      "alto": 1.3,
+      "luxo": 1.8
+    }
+  },
+  {
+    "codigo": "CER001",
+    "descricao": "Cerâmica para piso 45x45cm",
+    "unidade": "m²",
+    "coeficiente": 1.1,
+    "categoria": "Revestimentos",
+    "fatorPadrao": {
+      "popular": 0.6,
+      "medio": 1.0,
+      "alto": 2.0,
+      "luxo": 4.0
+    }
+  },
+  {
+    "codigo": "TIN001",
+    "descricao": "Tinta acrílica premium",
+    "unidade": "litro",
+    "coeficiente": 0.15,
+    "categoria": "Pintura",
+    "fatorPadrao": {
+      "popular": 0.7,
+      "medio": 1.0,
+      "alto": 1.5,
+      "luxo": 2.5
+    }
+  },
+  {
+    "codigo": "FER001",
+    "descricao": "Vergalhão CA-50 12mm",
+    "unidade": "kg",
+    "coeficiente": 85,
+    "categoria": "Estrutura",
+    "fatorPadrao": {
+      "popular": 0.9,
+      "medio": 1.0,
+      "alto": 1.1,
+      "luxo": 1.2
+    }
+  },
+  {
+    "codigo": "HID001",
+    "descricao": "Tubo PVC esgoto 100mm",
+    "unidade": "m",
+    "coeficiente": 8,
+    "categoria": "Hidráulica",
+    "fatorPadrao": {
+      "popular": 0.8,
+      "medio": 1.0,
+      "alto": 1.3,
+      "luxo": 1.6
+    }
+  },
+  {
+    "codigo": "ELE001",
+    "descricao": "Cabo flexível 2,5mm²",
+    "unidade": "m",
+    "coeficiente": 45,
+    "categoria": "Elétrica",
+    "fatorPadrao": {
+      "popular": 0.8,
+      "medio": 1.0,
+      "alto": 1.2,
+      "luxo": 1.5
+    }
+  },
+  {
+    "codigo": "COB001",
+    "descricao": "Telha cerâmica portuguesa",
+    "unidade": "m²",
+    "coeficiente": 1.15,
+    "categoria": "Cobertura",
+    "fatorPadrao": {
+      "popular": 0.7,
+      "medio": 1.0,
+      "alto": 1.8,
+      "luxo": 3.0
+    }
+  }
+]

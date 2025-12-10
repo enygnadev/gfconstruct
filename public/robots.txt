@@ -1,0 +1,28 @@
+User-agent: *
+Allow: /
+Allow: /images/
+Allow: /videos/
+Allow: /_next/static/
+Allow: /favicon.ico
+Allow: /sitemap.xml
+
+Disallow: /api/
+Disallow: /admin/
+Disallow: /_next/
+Disallow: /private/
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+Crawl-delay: 1
+
+Sitemap: https://www.chevalmirrors.co.tz/sitemap.xml
