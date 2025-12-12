@@ -382,6 +382,72 @@
     @apply bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg;
   }
 
+  /* Glassmorphism lens effect utility (iOS-like frosted glass) */
+  .glass {
+    @apply bg-white/20 dark:bg-slate-900/30 border border-white/10 dark:border-slate-700/30 backdrop-blur-md rounded-lg shadow-lg;
+    /* Subtle gradient for lens look */
+    background-image: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06));
+  }
+
+  /* Glass animations and micro interactions */
+  @keyframes lens-shine {
+    0% { transform: translateX(-140%) rotate(25deg); opacity: 0; }
+    50% { transform: translateX(0%) rotate(25deg); opacity: 0.5; }
+    100% { transform: translateX(140%) rotate(25deg); opacity: 0; }
+  }
+
+  .glass-shine {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .glass-shine::after {
+    content: '';
+    position: absolute;
+    top: -40%;
+    left: -40%;
+    width: 180%;
+    height: 180%;
+    background: linear-gradient(110deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.035) 45%, rgba(255,255,255,0.08) 100%);
+    transform: rotate(25deg);
+    animation: lens-shine 2.2s ease-in-out infinite;
+    mix-blend-mode: overlay;
+  }
+
+  @keyframes glass-pulse {
+    0% { transform: scale(1); box-shadow: 0 6px 18px rgba(0,0,0,0.12); }
+    50% { transform: scale(1.03); box-shadow: 0 20px 40px rgba(0,0,0,0.18); }
+    100% { transform: scale(1); box-shadow: 0 6px 18px rgba(0,0,0,0.12); }
+  }
+
+  .glass-pulse {
+    animation: glass-pulse 2.7s ease-in-out infinite;
+  }
+
+  /* Interactive glass button styles */
+  .glass-btn {
+    @apply rounded-full inline-flex items-center justify-center ring-1 ring-white/10 border border-white/10 bg-transparent;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: transform .18s ease, box-shadow .2s ease;
+  }
+
+  .glass-btn:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 14px 40px rgba(0,0,0,0.25); }
+
+  /* Quick sparkle micro-animations */
+  @keyframes sparkle {
+    0% { opacity: 0; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.05); }
+    100% { opacity: 0; transform: scale(0.9); }
+  }
+
+  .sparkle {
+    position: absolute; width: 6px; height: 6px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,1), rgba(255,255,255,0.3));
+    animation: sparkle 1.2s ease-in-out infinite;
+    pointer-events: none;
+  }
+
   .card-modern {
     @apply rounded-xl shadow-lg overflow-hidden;
   }
@@ -702,4 +768,20 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--primary-blue-dark));
+}
+
+/* Music Player Styles */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes floatDistort {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
 }

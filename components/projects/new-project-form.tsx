@@ -316,24 +316,74 @@ export function NewProjectForm({ isOpen, onClose, onSubmit }: NewProjectFormProp
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DrawerContent className="max-h-[96vh] sm:max-h-[95vh] overflow-y-auto bg-white dark:bg-slate-900 flex flex-col">
-        <DrawerHeader className="sticky top-0 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 z-20 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between py-4">
-          <div>
-            <DrawerTitle className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
-              Novo Projeto
-            </DrawerTitle>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-              Preencha as informações para criar um novo projeto
-            </p>
+      <DrawerContent className="w-full max-h-[96vh] sm:max-h-[95vh] overflow-y-auto bg-white dark:bg-slate-900 flex flex-col">
+        <DrawerHeader className="sticky top-0 z-30 border-b border-slate-200 dark:border-slate-700 p-4 glass">
+          <div className="flex items-center justify-between">
+            <div>
+              <DrawerTitle className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
+                Novo Projeto
+              </DrawerTitle>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
+                Preencha as informações para criar um novo projeto
+              </p>
+            </div>
+            <DrawerClose asChild>
+              <button className="p-2 rounded-lg transition-colors flex-shrink-0 glass-btn">
+                <X className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+              </button>
+            </DrawerClose>
           </div>
-          <DrawerClose asChild>
-            <button className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors flex-shrink-0">
-              <X className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-            </button>
-          </DrawerClose>
+
+          {/* Steps indicator (moved to header to avoid overlapping inputs) */}
+          <div className="mt-3">
+            <div className="hidden sm:flex items-center justify-between gap-1 sm:gap-2 overflow-x-auto">
+              {steps.map((s) => {
+                const isActive = s.number === step
+                const isCompleted = s.number < step
+                return (
+                  <motion.div key={s.number} className="flex-1 min-w-[48px]">
+                    <motion.button
+                      onClick={() => s.number < step && setStep(s.number)}
+                      className={`w-full h-10 sm:h-12 rounded-lg transition-all text-xs sm:text-sm font-medium ${
+                        isActive
+                          ? 'bg-gold-500 text-slate-900 shadow-md relative overflow-hidden'
+                          : isCompleted
+                          ? 'bg-green-500 text-white'
+                          : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                      }`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      {isActive && <div className="absolute inset-0 pointer-events-none overflow-hidden glass-shine" />}
+                      {isCompleted ? '✓' : s.number}
+                    </motion.button>
+                  </motion.div>
+                )
+              })}
+            </div>
+            {/* Animated progress bar */}
+            <div className="mt-3 px-2">
+              <div className="h-1 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(step / steps.length) * 100}%` }}
+                  transition={{ type: 'spring', stiffness: 180, damping: 20, duration: 0.5 }}
+                  className="h-1 bg-gradient-to-r from-gold-400 to-gold-600"
+                />
+              </div>
+            </div>
+            <div className="mt-2 text-center sm:text-left">
+              <h3 className="text-sm sm:text-base font-semibold text-slate-900 dark:text-white">
+                {steps[step - 1].title}
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                Passo {step} de {steps.length}
+              </p>
+            </div>
+          </div>
         </DrawerHeader>
 
-        <div className="flex-1 px-4 pb-6 space-y-4 sm:px-6 overflow-y-auto">
+        <div className="flex-1 px-4 pt-14 pb-6 space-y-4 sm:px-6 sm:pt-20 overflow-y-auto">
           {/* Success State */}
           {success && (
             <motion.div
@@ -363,42 +413,7 @@ export function NewProjectForm({ isOpen, onClose, onSubmit }: NewProjectFormProp
             </motion.div>
           )}
 
-          {/* Steps Indicator */}
-          <div className="sticky top-16 bg-white dark:bg-slate-900 py-4 border-b border-slate-200 dark:border-slate-700 space-y-3 -mx-4 px-4 sm:-mx-6 sm:px-6 z-10">
-            <div className="flex items-center justify-between gap-1 sm:gap-2">
-              {steps.map((s) => {
-                const isActive = s.number === step
-                const isCompleted = s.number < step
-
-                return (
-                  <motion.div key={s.number} className="flex-1">
-                    <motion.button
-                      onClick={() => s.number < step && setStep(s.number)}
-                      className={`w-full h-10 sm:h-12 rounded-lg transition-all text-xs sm:text-sm font-medium ${
-                        isActive
-                          ? 'bg-gold-500 text-slate-900 shadow-md'
-                          : isCompleted
-                          ? 'bg-green-500 text-white'
-                          : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
-                      }`}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      {isCompleted ? '✓' : s.number}
-                    </motion.button>
-                  </motion.div>
-                )
-              })}
-            </div>
-            <div className="text-center px-2">
-              <h3 className="text-sm sm:text-base font-semibold text-slate-900 dark:text-white">
-                {steps[step - 1].title}
-              </h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400">
-                Passo {step} de 4
-              </p>
-            </div>
-          </div>
+          {/* Steps Indicator moved into DrawerHeader to avoid overlapping content */}
 
           {/* Form Content */}
           <div className="space-y-3">
@@ -418,7 +433,7 @@ export function NewProjectForm({ isOpen, onClose, onSubmit }: NewProjectFormProp
                     value={formData.projectName}
                     onChange={handleInputChange}
                     placeholder="Ex: Casa Residencial"
-                    className="mt-1 text-xs sm:text-sm h-9 sm:h-10"
+                    className="mt-1 text-xs sm:text-sm h-9 sm:h-10 scroll-mt-14 sm:scroll-mt-20"
                   />
                 </div>
 
@@ -433,7 +448,7 @@ export function NewProjectForm({ isOpen, onClose, onSubmit }: NewProjectFormProp
                         onChange={handleInputChange}
                         placeholder="PROJ-001"
                         readOnly
-                        className="flex-1 text-xs h-9 sm:h-10"
+                        className="flex-1 text-xs h-9 sm:h-10 scroll-mt-14 sm:scroll-mt-20"
                       />
                       <Button
                         type="button"
@@ -490,7 +505,7 @@ export function NewProjectForm({ isOpen, onClose, onSubmit }: NewProjectFormProp
                     onChange={handleInputChange}
                     placeholder="Detalhes do projeto..."
                     rows={3}
-                    className="mt-1 text-xs sm:text-sm resize-none"
+                    className="mt-1 text-xs sm:text-sm resize-none scroll-mt-14 sm:scroll-mt-20"
                   />
                 </div>
               </motion.div>
@@ -511,13 +526,13 @@ export function NewProjectForm({ isOpen, onClose, onSubmit }: NewProjectFormProp
                   <CardContent className="space-y-3">
                     <div>
                       <Label htmlFor="clientName" className="text-xs sm:text-sm">Nome *</Label>
-                      <Input
+                        <Input
                         id="clientName"
                         name="client.name"
                         value={formData.client.name}
                         onChange={handleInputChange}
                         placeholder="Nome ou razão social"
-                        className="mt-1 text-xs sm:text-sm h-9 sm:h-10"
+                          className="mt-1 text-xs sm:text-sm h-9 sm:h-10 scroll-mt-14 sm:scroll-mt-20"
                       />
                     </div>
 
@@ -531,7 +546,7 @@ export function NewProjectForm({ isOpen, onClose, onSubmit }: NewProjectFormProp
                           value={formData.client.email}
                           onChange={handleInputChange}
                           placeholder="email@example.com"
-                          className="mt-1 text-xs h-9 sm:h-10"
+                          className="mt-1 text-xs h-9 sm:h-10 scroll-mt-14 sm:scroll-mt-20"
                         />
                       </div>
 
@@ -543,7 +558,7 @@ export function NewProjectForm({ isOpen, onClose, onSubmit }: NewProjectFormProp
                           value={formData.client.phone}
                           onChange={handleInputChange}
                           placeholder="(11) 99999-9999"
-                          className="mt-1 text-xs h-9 sm:h-10"
+                          className="mt-1 text-xs h-9 sm:h-10 scroll-mt-14 sm:scroll-mt-20"
                         />
                       </div>
                     </div>
@@ -563,7 +578,7 @@ export function NewProjectForm({ isOpen, onClose, onSubmit }: NewProjectFormProp
                         value={formData.location.address}
                         onChange={handleInputChange}
                         placeholder="Rua, número"
-                        className="mt-1 text-xs sm:text-sm h-9 sm:h-10"
+                        className="mt-1 text-xs sm:text-sm h-9 sm:h-10 scroll-mt-14 sm:scroll-mt-20"
                       />
                     </div>
 
@@ -576,7 +591,7 @@ export function NewProjectForm({ isOpen, onClose, onSubmit }: NewProjectFormProp
                           value={formData.location.city}
                           onChange={handleInputChange}
                           placeholder="São Paulo"
-                          className="mt-1 text-xs h-9 sm:h-10"
+                          className="mt-1 text-xs h-9 sm:h-10 scroll-mt-14 sm:scroll-mt-20"
                         />
                       </div>
 
@@ -619,7 +634,7 @@ export function NewProjectForm({ isOpen, onClose, onSubmit }: NewProjectFormProp
                       placeholder="0.00"
                       step="0.01"
                       min="0"
-                      className="flex-1 text-xs sm:text-sm h-9 sm:h-10"
+                      className="flex-1 text-xs sm:text-sm h-9 sm:h-10 scroll-mt-14 sm:scroll-mt-20"
                     />
                   </div>
                   {formData.budget > 0 && (
@@ -641,7 +656,7 @@ export function NewProjectForm({ isOpen, onClose, onSubmit }: NewProjectFormProp
                       type="date"
                       value={formData.startDate}
                       onChange={handleInputChange}
-                      className="mt-1 text-xs sm:text-sm h-9 sm:h-10"
+                      className="mt-1 text-xs sm:text-sm h-9 sm:h-10 scroll-mt-14 sm:scroll-mt-20"
                     />
                   </div>
 
@@ -653,7 +668,7 @@ export function NewProjectForm({ isOpen, onClose, onSubmit }: NewProjectFormProp
                       type="date"
                       value={formData.plannedEndDate}
                       onChange={handleInputChange}
-                      className="mt-1 text-xs sm:text-sm h-9 sm:h-10"
+                      className="mt-1 text-xs sm:text-sm h-9 sm:h-10 scroll-mt-14 sm:scroll-mt-20"
                     />
                   </div>
                 </div>
@@ -689,7 +704,7 @@ export function NewProjectForm({ isOpen, onClose, onSubmit }: NewProjectFormProp
                     onChange={handleInputChange}
                     placeholder="Qual é o objetivo?"
                     rows={2}
-                    className="mt-1 text-xs sm:text-sm resize-none"
+                    className="mt-1 text-xs sm:text-sm resize-none scroll-mt-14 sm:scroll-mt-20"
                   />
                 </div>
 
@@ -702,7 +717,7 @@ export function NewProjectForm({ isOpen, onClose, onSubmit }: NewProjectFormProp
                     onChange={handleInputChange}
                     placeholder="Descreva o escopo do projeto..."
                     rows={2}
-                    className="mt-1 text-xs sm:text-sm resize-none"
+                    className="mt-1 text-xs sm:text-sm resize-none scroll-mt-14 sm:scroll-mt-20"
                   />
                 </div>
 

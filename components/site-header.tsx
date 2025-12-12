@@ -93,7 +93,7 @@ export function SiteHeader() {
                 <span className="sr-only">Alternar menu</span>
               </Button>
             </DrawerTrigger>
-            <DrawerContent className="h-[90vh]">
+            <DrawerContent className="h-[90vh] glass">
               <DrawerTitle className="sr-only">Menu de Navegação</DrawerTitle>
               <DrawerDescription className="sr-only">
                 Menu principal do site com links para todas as seções

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { NewProjectData } from '@/components/projects/new-project-form'
+import { createProjectInFirestore } from '@/lib/backend/projects'
 import { Project, ProjectMember, Stage } from '@/lib/types/projects'
 
 export interface UseCreateProjectResult {
@@ -168,16 +169,13 @@ export function useCreateProject(): UseCreateProjectResult {
         isArchived: false
       }
 
-      // Simular salvamento em Firebase
-      // Em produção, usar: await firebase.database().ref(`projects/${newProject.id}`).set(newProject)
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // Aqui você pode adicionar a lógica de persistência com Firebase
-      // exemplo: await addProjectToFirebase(newProject)
+      // Salvar em Firestore
+      const created = await createProjectInFirestore(newProject as Partial<Project>)
 
       setProjectCreated(newProject)
       setSuccess(true)
-      return newProject
+      setProjectCreated(created)
+      return created
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao criar projeto'
       setError(errorMessage)

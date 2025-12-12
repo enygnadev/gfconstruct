@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { 
   Project, 
   ProjectFilters, 
@@ -9,12 +9,20 @@ import {
   ProjectTask,
   ProjectAlert
 } from '@/lib/types/projects'
+import {
+  getProjectsFromFirestore,
+  createProjectInFirestore,
+  getProjectByIdFromFirestore,
+  updateProjectInFirestore,
+  deleteProjectInFirestore,
+  archiveProjectInFirestore
+} from '@/lib/backend/projects'
 
-// Mock data - em produção, seria integrado com Firebase/API
+// Empty default; we will fetch data from Firestore in production
 const mockProjects: Project[] = [
   {
-    id: '1',
-    projectName: 'Casa Residencial - Vila São Paulo',
+    id: 'proj-001',
+    projectName: 'Casa Residencial João Silva',
     projectCode: 'PROJ-001',
     type: 'obra-civil',
     status: 'execucao',
@@ -250,38 +258,9 @@ export function useProjects() {
     setLoading(true)
     setError(null)
     try {
-      // Simular latência de rede
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      let filtered = [...projects]
-
-      if (filters?.searchText) {
-        const text = filters.searchText.toLowerCase()
-        filtered = filtered.filter(p => 
-          p.projectName.toLowerCase().includes(text) ||
-          p.projectCode.toLowerCase().includes(text) ||
-          p.client?.name.toLowerCase().includes(text)
-        )
-      }
-
-      if (filters?.status && filters.status.length > 0) {
-        filtered = filtered.filter(p => filters.status?.includes(p.status))
-      }
-
-      if (filters?.type && filters.type.length > 0) {
-        filtered = filtered.filter(p => filters.type?.includes(p.type))
-      }
-
-      if (filters?.priority && filters.priority.length > 0) {
-        filtered = filtered.filter(p => filters.priority?.includes(p.priority))
-      }
-
-      if (!filters?.includeArchived) {
-        filtered = filtered.filter(p => !p.isArchived)
-      }
-
-      setProjects(filtered)
-      return filtered
+      const data = await getProjectsFromFirestore(filters)
+      setProjects(data)
+      return data
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Erro ao buscar projetos'
       setError(errorMsg)
@@ -291,9 +270,23 @@ export function useProjects() {
     }
   }, [projects])
 
-  // Buscar projeto por ID
+  // Fetch initial projects on mount
+  useEffect(() => {
+    fetchProjects().catch(err => console.error('Failed to fetch projects on mount', err))
+  }, [])
+
+  // Buscar projeto por ID (sincrono a partir do cache local)
   const getProjectById = useCallback((projectId: string) => {
     return projects.find(p => p.id === projectId)
+  }, [projects])
+
+  // Garantir carregamento de um projeto por ID (async, fetch do Firestore se necessario)
+  const fetchProjectById = useCallback(async (projectId: string) => {
+    const local = projects.find(p => p.id === projectId)
+    if (local) return local
+    const remote = await getProjectByIdFromFirestore(projectId)
+    if (remote) setProjects(prev => [...prev, remote])
+    return remote
   }, [projects])
 
   // Criar novo projeto
@@ -301,14 +294,9 @@ export function useProjects() {
     setLoading(true)
     setError(null)
     try {
-      const project: Project = {
-        ...newProject,
-        id: `proj-${Date.now()}`,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-      setProjects([...projects, project])
-      return project
+      const created = await createProjectInFirestore(newProject as Partial<Project>)
+      setProjects(prev => [...prev, created])
+      return created
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Erro ao criar projeto'
       setError(errorMsg)
@@ -323,11 +311,8 @@ export function useProjects() {
     setLoading(true)
     setError(null)
     try {
-      setProjects(projects.map(p => 
-        p.id === projectId 
-          ? { ...p, ...updates, updatedAt: new Date() }
-          : p
-      ))
+      await updateProjectInFirestore(projectId, updates)
+      setProjects(prev => prev.map(p => p.id === projectId ? { ...p, ...updates, updatedAt: new Date() } : p))
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Erro ao atualizar projeto'
       setError(errorMsg)
@@ -342,7 +327,8 @@ export function useProjects() {
     setLoading(true)
     setError(null)
     try {
-      setProjects(projects.filter(p => p.id !== projectId))
+      await deleteProjectInFirestore(projectId)
+      setProjects(prev => prev.filter(p => p.id !== projectId))
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Erro ao excluir projeto'
       setError(errorMsg)
@@ -357,17 +343,8 @@ export function useProjects() {
     setLoading(true)
     setError(null)
     try {
-      setProjects(projects.map(p =>
-        p.id === projectId
-          ? {
-              ...p,
-              isArchived: true,
-              archivedAt: new Date(),
-              archivedBy: userId,
-              updatedAt: new Date()
-            }
-          : p
-      ))
+      await archiveProjectInFirestore(projectId, userId)
+      setProjects(prev => prev.map(p => p.id === projectId ? { ...p, isArchived: true, archivedAt: new Date(), archivedBy: userId, updatedAt: new Date() } : p))
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Erro ao arquivar projeto'
       setError(errorMsg)
@@ -382,15 +359,12 @@ export function useProjects() {
     setLoading(true)
     setError(null)
     try {
-      const newStage: Stage = {
-        ...stage,
-        id: `stage-${Date.now()}`
-      }
-      setProjects(projects.map(p =>
-        p.id === projectId
-          ? { ...p, stages: [...p.stages, newStage], updatedAt: new Date() }
-          : p
-      ))
+      const newStage: Stage = { ...stage, id: `stage-${Date.now()}` }
+      const projectDoc = await getProjectByIdFromFirestore(projectId)
+      if (!projectDoc) throw new Error('Projeto não encontrado')
+      const updatedStages = [...projectDoc.stages, newStage]
+      await updateProjectInFirestore(projectId, { stages: updatedStages })
+      setProjects(prev => prev.map(p => p.id === projectId ? { ...p, stages: updatedStages, updatedAt: new Date() } : p))
       return newStage
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Erro ao adicionar etapa'

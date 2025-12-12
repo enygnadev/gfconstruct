@@ -41,6 +41,7 @@ import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/lib/auth-context'
 import { Logo } from '@/components/logo'
 import { useProjects } from '@/lib/hooks/useProjects'
+import AdvancedMenu from '@/components/ui/advanced-menu'
 import { ProjectCard } from '@/components/projects/project-card'
 import { NewProjectForm, NewProjectData } from '@/components/projects/new-project-form'
 import { useNotification } from '@/components/projects/project-notification'
@@ -48,8 +49,9 @@ import { useNotification } from '@/components/projects/project-notification'
 export default function DashboardPage() {
   const { user, loading, signOut } = useAuth()
   const router = useRouter()
-  const { projects, getStats, fetchProjects } = useProjects()
+  const { projects, getStats, fetchProjects, createProject } = useProjects()
   const { success: showSuccess, error: showError } = useNotification()
+  // Temporarily open drawer on page load to visually test overlay and stacking
   const [newProjectOpen, setNewProjectOpen] = useState(false)
 
   useEffect(() => {
@@ -73,8 +75,12 @@ export default function DashboardPage() {
       if (new Date(data.startDate) >= new Date(data.plannedEndDate)) {
         throw new Error('Data de termino deve ser apos a data de inicio')
       }
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      const created = await createProject({
+        ...data,
+        owner: user as any // Assign current user as owner (ensure type match)
+      } as any)
       await fetchProjects()
+      showSuccess('Projeto criado com sucesso!', `${created.projectName} foi adicionado`)
       showSuccess('Projeto criado com sucesso!', data.projectName + ' foi adicionado')
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Erro ao criar projeto'
@@ -185,6 +191,11 @@ export default function DashboardPage() {
       {/* Main Content */}
       <main className="p-6">
         <div className="max-w-7xl mx-auto space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <aside className="hidden lg:block lg:col-span-1">
+              <AdvancedMenu />
+            </aside>
+            <section className="col-span-1 lg:col-span-3">
           {/* Navigation Tabs */}
           <Tabs defaultValue="neural" className="w-full">
             <TabsList className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg w-full justify-start gap-0 h-auto p-1 mb-6">
@@ -408,7 +419,9 @@ export default function DashboardPage() {
             <TabsContent value="projects">
               {/* Redireciona automaticamente para página de projetos */}
             </TabsContent>
-          </Tabs>
+            </Tabs>
+            </section>
+          </div>
         </div>
 
         {/* New Project Form Modal */}

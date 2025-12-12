@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { motion } from 'framer-motion'
 import { Drawer as DrawerPrimitive } from "vaul"
 
 import { cn } from "@/lib/utils"
@@ -28,7 +29,8 @@ const DrawerOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Overlay
     ref={ref}
-    className={cn("fixed inset-0 z-50 bg-black/80", className)}
+    // Use a high z-index so the overlay covers sticky headers or other high z elements
+    className={cn("fixed inset-0 z-[9998] bg-black/80 transition-opacity duration-300 ease-out", className)}
     {...props}
   />
 ))
@@ -43,13 +45,29 @@ const DrawerContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
+        // Mobile: bottom anchored full-width drawer with rounded top corners
+        // Desktop (sm+): centered modal with max width, rounded corners and elevated position
+        "fixed inset-x-0 bottom-0 z-[9999] mt-24 flex h-auto flex-col rounded-t-[10px] border glass",
+        // On sm and up, provide a consistent inset for top/left/right/bottom so the content sits centered, not behind other elements.
+        // sm:inset-12 sets top/right/bottom/left to '3rem' which keeps the modal centered in the viewport.
+        "sm:inset-12 sm:bottom-auto sm:mt-0 sm:mx-auto sm:max-w-4xl sm:rounded-lg",
         className
       )}
       {...props}
     >
       <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
-      {children}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="glass-shine" />
+      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 16, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 8, scale: 0.98 }}
+        transition={{ duration: 0.28, ease: 'easeOut' }}
+        className="w-full"
+      >
+        {children}
+      </motion.div>
     </DrawerPrimitive.Content>
   </DrawerPortal>
 ))
